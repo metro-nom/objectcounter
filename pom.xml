@@ -5,4 +5,16 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>objectcounter</name>
   <description>Functionality for counting objects in a collection or stream matching certain criteria and providing rates between counts.</description>
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.8</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
