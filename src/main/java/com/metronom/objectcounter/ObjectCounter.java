@@ -56,8 +56,10 @@ public abstract class ObjectCounter<T> {
     /**
      * @see #getObjectCountByDistinguisher(Function, Stream)
      */
-    public <S> Map<S, Long> getObjectCountByDistinguisher(final Function<T, S> distinguisher,
-            final Collection<T> objects) {
+    public <S> Map<S, Long> getObjectCountByDistinguisher(
+        final Function<T, S> distinguisher,
+        final Collection<T> objects
+    ) {
         return this.getObjectCountByDistinguisher(distinguisher, objects.stream());
     }
 
