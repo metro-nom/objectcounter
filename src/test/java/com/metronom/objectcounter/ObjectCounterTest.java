@@ -12,20 +12,6 @@ public class ObjectCounterTest {
     boolean initCalledBefore;
 
     @Test
-    public void toStringYieldsDescription() {
-        final String name = "TestCounter";
-        final ObjectCounter<String> counter = new ObjectCounter<String>(name) {
-
-            @Override
-            public long count(final String object) {
-                return 0;
-            }
-
-        };
-        Assert.assertEquals(name, counter.toString());
-    }
-
-    @Test
     public void getObjectCountAllObjects() {
         final ObjectCounter<String> counter = new ObjectCounter<String>("TestCounter") {
 
@@ -146,6 +132,36 @@ public class ObjectCounterTest {
         Assert.assertEquals(Long.valueOf(0), resultStream.get("a"));
         Assert.assertEquals(Long.valueOf(0), resultStream.get("b"));
         Assert.assertEquals(Long.valueOf(0), resultStream.get("c"));
+    }
+
+    @Test
+    public void getObjectCountByMultiDistinguisher() {
+        final ObjectCounter<String> counter = new ObjectCounter<String>("TestCounter") {
+
+            @Override
+            public long count(final String object) {
+                return 1;
+            }
+
+        };
+        final Map<String, Long> resultCollection =
+            counter.getObjectCountByMultiDistinguisher(
+                string -> Arrays.asList(string.split(",")),
+                Lists.newArrayList("a,b", "b", "c")
+            );
+        Assert.assertEquals(3, resultCollection.size());
+        Assert.assertEquals(Long.valueOf(1), resultCollection.get("a"));
+        Assert.assertEquals(Long.valueOf(2), resultCollection.get("b"));
+        Assert.assertEquals(Long.valueOf(1), resultCollection.get("c"));
+        final Map<String, Long> resultStream =
+            counter.getObjectCountByMultiDistinguisher(
+                string -> Arrays.asList(string.split(",")),
+                Lists.newArrayList("a,b", "b", "c").stream()
+            );
+        Assert.assertEquals(3, resultStream.size());
+        Assert.assertEquals(Long.valueOf(1), resultStream.get("a"));
+        Assert.assertEquals(Long.valueOf(2), resultStream.get("b"));
+        Assert.assertEquals(Long.valueOf(1), resultStream.get("c"));
     }
 
     @Test
@@ -270,6 +286,20 @@ public class ObjectCounterTest {
         };
         counter.getObjectCount(Lists.newArrayList("a", "b", "c"));
         Assert.assertFalse(this.initCalledBefore);
+    }
+
+    @Test
+    public void toStringYieldsDescription() {
+        final String name = "TestCounter";
+        final ObjectCounter<String> counter = new ObjectCounter<String>(name) {
+
+            @Override
+            public long count(final String object) {
+                return 0;
+            }
+
+        };
+        Assert.assertEquals(name, counter.toString());
     }
 
 }

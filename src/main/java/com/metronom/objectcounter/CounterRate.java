@@ -67,9 +67,25 @@ public class CounterRate<T> {
      *         <code>distinguisher</code>.
      */
     public <S> Map<S, Double> getRateByDistinguisher(final Function<T, S> distinguisher, final Collection<T> objects) {
+        return this.getRateByMultiDistinguisher(o -> Collections.singleton(distinguisher.apply(o)), objects);
+    }
+
+    /**
+     * @param distinguisher A function yielding a collection of objects distinguishing the specified objects such that
+     *                      the count of criteria is separate for each distinguishing object (but will be counted for
+     *                      each distinguishing object in the collection).
+     * @param objects The objects to count in.
+     * @return The rate between the actual and total number of occurrences of certain criteria (specified by the given
+     *         counters) in the specified objects separated for each distinguishing object according to the specified
+     *         <code>distinguisher</code>.
+     */
+    public <S> Map<S, Double> getRateByMultiDistinguisher(
+        final Function<T, Collection<S>> distinguisher,
+        final Collection<T> objects
+    ) {
         final Map<S, Double> result = new LinkedHashMap<S, Double>();
-        final Map<S, Long> countMap = this.count.getObjectCountByDistinguisher(distinguisher, objects);
-        final Map<S, Long> totalMap = this.total.getObjectCountByDistinguisher(distinguisher, objects);
+        final Map<S, Long> countMap = this.count.getObjectCountByMultiDistinguisher(distinguisher, objects);
+        final Map<S, Long> totalMap = this.total.getObjectCountByMultiDistinguisher(distinguisher, objects);
         for (final Map.Entry<S, Long> entry : totalMap.entrySet()) {
             final S distinguished = entry.getKey();
             final long numCount = countMap.containsKey(distinguished) ? countMap.get(distinguished) : 0;

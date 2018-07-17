@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.metronom</groupId>
   <artifactId>objectcounter</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <name>objectcounter</name>
   <description>Functionality for counting objects in a collection or stream matching certain criteria and providing rates between counts.</description>
   <properties>

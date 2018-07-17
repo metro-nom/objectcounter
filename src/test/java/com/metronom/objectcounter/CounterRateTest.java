@@ -17,7 +17,7 @@ public class CounterRateTest {
 
                     @Override
                     public long count(final String object) {
-                        return "b".equals(object) ? 1: 0;
+                        return "b".equals(object) ? 1 : 0;
                     }
 
                 },
@@ -36,7 +36,7 @@ public class CounterRateTest {
 
                     @Override
                     public long count(final String object) {
-                        return "b".equals(object) ? 1: 0;
+                        return "b".equals(object) ? 1 : 0;
                     }
 
                 },
@@ -50,6 +50,34 @@ public class CounterRateTest {
     }
 
     @Test
+    public void getRateByMultiDistinguisher() {
+        final CounterRate<String> rate =
+            new CounterRate<String>(
+                "TestRate",
+                new ObjectCounter<String>("NoAs") {
+
+                    @Override
+                    public long count(final String object) {
+                        return object.contains("a") ? 0 : 1;
+                    }
+
+            },
+            new AllCounter<String>("all"),
+            false
+        );
+        final Map<String, Double> result =
+            rate.getRateByMultiDistinguisher(
+                string -> Arrays.asList(string.split(",")),
+                Lists.newArrayList("a,b", "b", "c", "d")
+            );
+        Assert.assertEquals(4, result.size());
+        Assert.assertEquals(0.0, result.get("a"), Double.MIN_NORMAL);
+        Assert.assertEquals(0.5, result.get("b"), Double.MIN_NORMAL);
+        Assert.assertEquals(1.0, result.get("c"), Double.MIN_NORMAL);
+        Assert.assertEquals(1.0, result.get("d"), Double.MIN_NORMAL);
+    }
+
+    @Test
     public void getRateFullPercentageByDistinguisher() {
         final CounterRate<String> rate =
             new CounterRate<String>(
@@ -58,7 +86,7 @@ public class CounterRateTest {
 
                     @Override
                     public long count(final String object) {
-                        return "b".equals(object) ? 1: 0;
+                        return "b".equals(object) ? 1 : 0;
                     }
 
                 },

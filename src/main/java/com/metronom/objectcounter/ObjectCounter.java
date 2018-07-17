@@ -72,14 +72,41 @@ public abstract class ObjectCounter<T> {
      *         <code>distinguisher</code>.
      */
     public <S> Map<S, Long> getObjectCountByDistinguisher(final Function<T, S> distinguisher, final Stream<T> objects) {
+        return this.getObjectCountByMultiDistinguisher(o -> Collections.singleton(distinguisher.apply(o)), objects);
+    }
+
+    /**
+     * @see #getObjectCountByMultiDistinguisher(Function, Stream)
+     */
+    public <S> Map<S, Long> getObjectCountByMultiDistinguisher(
+        final Function<T, Collection<S>> distinguisher,
+        final Collection<T> objects
+    ) {
+        return this.getObjectCountByMultiDistinguisher(distinguisher, objects.stream());
+    }
+
+    /**
+     * @param distinguisher A function yielding a collection of objects distinguishing the specified objects such that
+     *                      the count of criteria is separate for each distinguishing object (but will be counted for
+     *                      each distinguishing object in the collection).
+     * @param objects The objects to count in.
+     * @return The number of occurrences of the criteria specified in the {@link #count(Object)} method in the
+     *         specified objects separated for each distinguishing object according to the specified
+     *         <code>distinguisher</code>.
+     */
+    public <S> Map<S, Long> getObjectCountByMultiDistinguisher(
+        final Function<T, Collection<S>> distinguisher,
+        final Stream<T> objects
+    ) {
         final Map<S, Long> result = new LinkedHashMap<S, Long>();
         this.init();
         objects.forEach(object -> {
-            final S distinguished = distinguisher.apply(object);
-            if (result.containsKey(distinguished)) {
-                result.put(distinguished, result.get(distinguished) + this.count(object));
-            } else {
-                result.put(distinguished, this.count(object));
+            for (final S distinguished : distinguisher.apply(object)) {
+                if (result.containsKey(distinguished)) {
+                    result.put(distinguished, result.get(distinguished) + this.count(object));
+                } else {
+                    result.put(distinguished, this.count(object));
+                }
             }
         });
         return result;
