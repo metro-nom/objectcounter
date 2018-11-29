@@ -1,5 +1,7 @@
 package com.metronom.objectcounter;
 
+import java.util.*;
+
 /**
  * Counts each object once.
  * @author Thomas Stroeder
@@ -16,8 +18,8 @@ public class AllCounter<T> extends ObjectCounter<T> {
     }
 
     @Override
-    public long count(final T object) {
-        return 1;
+    public Optional<Long> count(final T object) {
+        return Optional.of(1L);
     }
 
 }

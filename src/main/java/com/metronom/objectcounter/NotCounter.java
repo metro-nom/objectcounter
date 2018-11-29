@@ -1,5 +1,7 @@
 package com.metronom.objectcounter;
 
+import java.util.*;
+
 /**
  * Counts the current object once if the negated counter did not count anything in the current object. Otherwise it
  * does not count the current object.
@@ -25,8 +27,12 @@ public class NotCounter<T> extends ObjectCounter<T> {
     }
 
     @Override
-    public long count(final T object) {
-        return this.counter.count(object) > 0 ? 0 : 1;
+    public Optional<Long> count(final T object) {
+        final Optional<Long> negatedResult = this.counter.count(object);
+        if (negatedResult.isPresent()) {
+            return Optional.of(negatedResult.get() > 0 ? 0L : 1L);
+        }
+        return Optional.empty();
     }
 
 }

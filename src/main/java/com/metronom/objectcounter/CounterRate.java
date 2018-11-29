@@ -48,14 +48,20 @@ public class CounterRate<T> {
     /**
      * @param objects The objects to count in.
      * @return The rate between the actual and total number of occurrences of certain criteria (specified by the given
-     *         counters) in the specified objects.
+     *         counters) in the specified objects. An empty value indicates that the collection of objects contains an
+     *         illegal object for the underlying count operations.
      */
-    public double getRate(final Collection<T> objects) {
+    public Optional<Double> getRate(final Collection<T> objects) {
         return this.getRate(this.count.getObjectCount(objects), this.total.getObjectCount(objects));
     }
 
-    private double getRate(final long numCount, final long numTotal) {
-        return numCount * (this.isPercentage() ? 100.0 : 1.0) / numTotal;
+    private Optional<Double> getRate(final Optional<Long> numCountOptional, final Optional<Long> numTotalOptional) {
+        if (!numCountOptional.isPresent() || !numTotalOptional.isPresent()) {
+            return Optional.empty();
+        }
+        final double numCount = numCountOptional.get();
+        final double numTotal = numTotalOptional.get();
+        return Optional.of(numCount * (this.isPercentage() ? 100.0 : 1.0) / numTotal);
     }
 
     /**
@@ -64,9 +70,13 @@ public class CounterRate<T> {
      * @param objects The objects to count in.
      * @return The rate between the actual and total number of occurrences of certain criteria (specified by the given
      *         counters) in the specified objects separated for each distinguishing object according to the specified
-     *         <code>distinguisher</code>.
+     *         <code>distinguisher</code>. An empty value indicates that the collection of objects contains an illegal
+     *         object for the underlying count operations.
      */
-    public <S> Map<S, Double> getRateByDistinguisher(final Function<T, S> distinguisher, final Collection<T> objects) {
+    public <S> Map<S, Optional<Double>> getRateByDistinguisher(
+        final Function<T, S> distinguisher,
+        final Collection<T> objects
+    ) {
         return this.getRateByMultiDistinguisher(o -> Collections.singleton(distinguisher.apply(o)), objects);
     }
 
@@ -77,19 +87,21 @@ public class CounterRate<T> {
      * @param objects The objects to count in.
      * @return The rate between the actual and total number of occurrences of certain criteria (specified by the given
      *         counters) in the specified objects separated for each distinguishing object according to the specified
-     *         <code>distinguisher</code>.
+     *         <code>distinguisher</code>. An empty value indicates that the collection of objects contains an illegal
+     *         object for the underlying count operations.
      */
-    public <S> Map<S, Double> getRateByMultiDistinguisher(
+    public <S> Map<S, Optional<Double>> getRateByMultiDistinguisher(
         final Function<T, Collection<S>> distinguisher,
         final Collection<T> objects
     ) {
-        final Map<S, Double> result = new LinkedHashMap<S, Double>();
-        final Map<S, Long> countMap = this.count.getObjectCountByMultiDistinguisher(distinguisher, objects);
-        final Map<S, Long> totalMap = this.total.getObjectCountByMultiDistinguisher(distinguisher, objects);
-        for (final Map.Entry<S, Long> entry : totalMap.entrySet()) {
+        final Map<S, Optional<Double>> result = new LinkedHashMap<S, Optional<Double>>();
+        final Map<S, Optional<Long>> countMap = this.count.getObjectCountByMultiDistinguisher(distinguisher, objects);
+        final Map<S, Optional<Long>> totalMap = this.total.getObjectCountByMultiDistinguisher(distinguisher, objects);
+        for (final Map.Entry<S, Optional<Long>> entry : totalMap.entrySet()) {
             final S distinguished = entry.getKey();
-            final long numCount = countMap.containsKey(distinguished) ? countMap.get(distinguished) : 0;
-            final long numTotal = entry.getValue();
+            final Optional<Long> numCount =
+                countMap.containsKey(distinguished) ? countMap.get(distinguished) : Optional.of(0L);
+            final Optional<Long> numTotal = entry.getValue();
             result.put(distinguished, this.getRate(numCount, numTotal));
         }
         return result;

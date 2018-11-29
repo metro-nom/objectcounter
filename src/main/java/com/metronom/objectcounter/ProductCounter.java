@@ -9,6 +9,13 @@ import java.util.*;
  */
 public class ProductCounter<T> extends ObjectCounter<T> {
 
+    private static Optional<Long> multiplyOptional(final Optional<Long> a, final Optional<Long> b) {
+        if (a.isPresent() && b.isPresent()) {
+            return Optional.of(a.get() * b.get());
+        }
+        return Optional.empty();
+    }
+
     private final Collection<ObjectCounter<T>> counters;
 
     /**
@@ -30,10 +37,10 @@ public class ProductCounter<T> extends ObjectCounter<T> {
     }
 
     @Override
-    public long count(final T object) {
-        long result = 1;
+    public Optional<Long> count(final T object) {
+        Optional<Long> result = Optional.of(1L);
         for (final ObjectCounter<T> counter : this.counters) {
-            result *= counter.count(object);
+            result = ProductCounter.multiplyOptional(result, counter.count(object));
         }
         return result;
     }

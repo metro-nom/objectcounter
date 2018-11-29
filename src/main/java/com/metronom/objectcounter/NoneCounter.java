@@ -1,5 +1,7 @@
 package com.metronom.objectcounter;
 
+import java.util.*;
+
 /**
  * Does not count any object.
  * @author Thomas Stroeder
@@ -16,8 +18,8 @@ public class NoneCounter<T> extends ObjectCounter<T> {
     }
 
     @Override
-    public long count(final T object) {
-        return 0;
+    public Optional<Long> count(final T object) {
+        return Optional.of(0L);
     }
 
 }

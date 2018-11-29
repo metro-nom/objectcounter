@@ -11,6 +11,13 @@ import java.util.stream.Stream;
  */
 public abstract class ObjectCounter<T> {
 
+    public static Optional<Long> sumOptionalCombiner(final Optional<Long> a, final Optional<Long> b) {
+        if (a.isPresent() && b.isPresent()) {
+            return Optional.of(a.get() + b.get());
+        }
+        return Optional.empty();
+    }
+
     private final String description;
 
     /**
@@ -25,9 +32,10 @@ public abstract class ObjectCounter<T> {
      * Counts the occurrences of certain criteria in a given object. By overriding this method, you can specify the
      * criteria to count.
      * @param object The object to count in.
-     * @return The number of occurrences of certain criteria in the specified object.
+     * @return The number of occurrences of certain criteria in the specified object. You can return an empty value to
+     *         indicate that the collection of objects contains an illegal object for this count operation.
      */
-    public abstract long count(T object);
+    public abstract Optional<Long> count(T object);
 
     /**
      * @return The description of this counter.
@@ -39,24 +47,25 @@ public abstract class ObjectCounter<T> {
     /**
      * @see #getObjectCount(Stream)
      */
-    public long getObjectCount(final Collection<T> objects) {
+    public Optional<Long> getObjectCount(final Collection<T> objects) {
         return this.getObjectCount(objects.stream());
     }
 
     /**
      * @param objects The objects to count in.
      * @return The number of occurrences of the criteria specified in the {@link #count(Object)} method in the
-     *         specified objects.
+     *         specified objects. An empty value indicates that the collection of objects contains an illegal object
+     *         for this count operation.
      */
-    public long getObjectCount(final Stream<T> objects) {
+    public Optional<Long> getObjectCount(final Stream<T> objects) {
         this.init();
-        return objects.mapToLong(this::count).sum();
+        return objects.reduce(Optional.of(0L), this::sumOptionalAccumulator, ObjectCounter::sumOptionalCombiner);
     }
 
     /**
      * @see #getObjectCountByDistinguisher(Function, Stream)
      */
-    public <S> Map<S, Long> getObjectCountByDistinguisher(
+    public <S> Map<S, Optional<Long>> getObjectCountByDistinguisher(
         final Function<T, S> distinguisher,
         final Collection<T> objects
     ) {
@@ -69,16 +78,20 @@ public abstract class ObjectCounter<T> {
      * @param objects The objects to count in.
      * @return The number of occurrences of the criteria specified in the {@link #count(Object)} method in the
      *         specified objects separated for each distinguishing object according to the specified
-     *         <code>distinguisher</code>.
+     *         <code>distinguisher</code>. An empty value indicates that the collection of objects contains an illegal
+     *         object for this count operation.
      */
-    public <S> Map<S, Long> getObjectCountByDistinguisher(final Function<T, S> distinguisher, final Stream<T> objects) {
+    public <S> Map<S, Optional<Long>> getObjectCountByDistinguisher(
+        final Function<T, S> distinguisher,
+        final Stream<T> objects
+    ) {
         return this.getObjectCountByMultiDistinguisher(o -> Collections.singleton(distinguisher.apply(o)), objects);
     }
 
     /**
      * @see #getObjectCountByMultiDistinguisher(Function, Stream)
      */
-    public <S> Map<S, Long> getObjectCountByMultiDistinguisher(
+    public <S> Map<S, Optional<Long>> getObjectCountByMultiDistinguisher(
         final Function<T, Collection<S>> distinguisher,
         final Collection<T> objects
     ) {
@@ -92,18 +105,22 @@ public abstract class ObjectCounter<T> {
      * @param objects The objects to count in.
      * @return The number of occurrences of the criteria specified in the {@link #count(Object)} method in the
      *         specified objects separated for each distinguishing object according to the specified
-     *         <code>distinguisher</code>.
+     *         <code>distinguisher</code>. An empty value indicates that the collection of objects contains an illegal
+     *         object for this count operation.
      */
-    public <S> Map<S, Long> getObjectCountByMultiDistinguisher(
+    public <S> Map<S, Optional<Long>> getObjectCountByMultiDistinguisher(
         final Function<T, Collection<S>> distinguisher,
         final Stream<T> objects
     ) {
-        final Map<S, Long> result = new LinkedHashMap<S, Long>();
+        final Map<S, Optional<Long>> result = new LinkedHashMap<S, Optional<Long>>();
         this.init();
         objects.forEach(object -> {
             for (final S distinguished : distinguisher.apply(object)) {
                 if (result.containsKey(distinguished)) {
-                    result.put(distinguished, result.get(distinguished) + this.count(object));
+                    result.put(
+                        distinguished,
+                        ObjectCounter.sumOptionalCombiner(result.get(distinguished), this.count(object))
+                    );
                 } else {
                     result.put(distinguished, this.count(object));
                 }
@@ -118,6 +135,10 @@ public abstract class ObjectCounter<T> {
      */
     public void init() {
         // DO NOTHING, JUST A HOOK FOR SUBCLASSES
+    }
+
+    private Optional<Long> sumOptionalAccumulator(final Optional<Long> sum, final T nextObject) {
+        return ObjectCounter.sumOptionalCombiner(sum, this.count(nextObject));
     }
 
     @Override

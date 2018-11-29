@@ -9,6 +9,13 @@ import java.util.*;
  */
 public class MaxCounter<T> extends ObjectCounter<T> {
 
+    private static Optional<Long> maxOptional(final Optional<Long> a, final Optional<Long> b) {
+        if (a.isPresent() && b.isPresent()) {
+            return Optional.of(Math.max(a.get(), b.get()));
+        }
+        return Optional.empty();
+    }
+
     private final Collection<ObjectCounter<T>> counters;
 
     /**
@@ -33,10 +40,10 @@ public class MaxCounter<T> extends ObjectCounter<T> {
     }
 
     @Override
-    public long count(final T object) {
-        long result = this.counters.iterator().next().count(object);
+    public Optional<Long> count(final T object) {
+        Optional<Long> result = this.counters.iterator().next().count(object);
         for (final ObjectCounter<T> counter : this.counters) {
-            result = Math.max(result, counter.count(object));
+            result = MaxCounter.maxOptional(result, counter.count(object));
         }
         return result;
     }

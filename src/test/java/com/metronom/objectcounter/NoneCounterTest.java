@@ -8,19 +8,19 @@ public class NoneCounterTest {
     @Test
     public void dontCountObject() {
         final ObjectCounter<String> counter = new NoneCounter<String>("TestCounter");
-        Assert.assertEquals(0, counter.count("test"));
+        Assert.assertEquals(0, counter.count("test").get().longValue());
     }
 
     @Test
     public void dontCountEmptyObject() {
         final ObjectCounter<String> counter = new NoneCounter<String>("TestCounter");
-        Assert.assertEquals(0, counter.count(""));
+        Assert.assertEquals(0, counter.count("").get().longValue());
     }
 
     @Test
     public void dontCountNull() {
         final ObjectCounter<String> counter = new NoneCounter<String>("TestCounter");
-        Assert.assertEquals(0, counter.count(null));
+        Assert.assertEquals(0, counter.count(null).get().longValue());
     }
 
 }

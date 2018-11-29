@@ -30,10 +30,10 @@ public class SumCounter<T> extends ObjectCounter<T> {
     }
 
     @Override
-    public long count(final T object) {
-        long result = 0;
+    public Optional<Long> count(final T object) {
+        Optional<Long> result = Optional.of(0L);
         for (final ObjectCounter<T> counter : this.counters) {
-            result += counter.count(object);
+            result = ObjectCounter.sumOptionalCombiner(result, counter.count(object));
         }
         return result;
     }
